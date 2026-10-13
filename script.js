@@ -1,113 +1,199 @@
 const PRODUCTS = [
-  { id: 1, name: "Classic Milk Tea", price: 59, emoji: "🧋", bg: "#f4e2d1" },
-  { id: 2, name: "Wintermelon Tea", price: 65, emoji: "🥤", bg: "#e7e8d3" },
-  { id: 3, name: "Taro Milk Tea", price: 65, emoji: "🧋", bg: "#e9def0" },
-  { id: 4, name: "Fruit Tea Lychee", price: 55, emoji: "🍹", bg: "#f7dfdf" },
-  { id: 5, name: "Brown Sugar Milk", price: 69, emoji: "🥛", bg: "#ead3bd" },
-  { id: 6, name: "Bottled Water", price: 20, emoji: "💧", bg: "#dcecf0" }
+  { id: 1, name: "Classic Milk Tea", size: "Regular", price: 59, emoji: "🧋", bg: "#f4e2d1", note: "Our signature creamy blend", tag: "BEST SELLER" },
+  { id: 2, name: "Wintermelon Milk Tea", size: "Regular", price: 65, emoji: "🥤", bg: "#e7e8d3", note: "Sweet, mellow & refreshing", tag: "" },
+  { id: 3, name: "Taro Milk Tea", size: "Regular", price: 65, emoji: "🧋", bg: "#e9def0", note: "Smooth, nutty taro flavor", tag: "FAN FAVORITE" },
+  { id: 4, name: "Fruit Tea Lychee", size: "Regular", price: 55, emoji: "🍹", bg: "#f7dfdf", note: "Bright, fruity & floral", tag: "" },
+  { id: 5, name: "Brown Sugar Milk Tea", size: "Regular", price: 69, emoji: "🥛", bg: "#ead3bd", note: "Rich brown sugar swirls", tag: "MUST TRY" },
+  { id: 6, name: "Bottled Water", size: "500 mL", price: 20, emoji: "💧", bg: "#dcecf0", note: "Cool and refreshing", tag: "" }
 ];
 
 const cart = new Map();
 const peso = amount => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(amount);
+const menuGrid = document.getElementById("menuGrid");
+const cartItems = document.getElementById("cartItems");
+const cartBadge = document.getElementById("cartBadge");
+const summaryCount = document.getElementById("summaryCount");
+const grandTotal = document.getElementById("grandTotal");
+const cashInput = document.getElementById("cashInput");
+const changePreview = document.getElementById("changePreview");
+const paymentAlert = document.getElementById("paymentAlert");
+const receiptModal = document.getElementById("receiptModal");
+const receiptContent = document.getElementById("receiptContent");
+const paymentForm = document.getElementById("paymentForm");
 
-document.getElementById("todayLabel").textContent = new Date().toLocaleDateString("en-PH");
+document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date());
+document.getElementById("year").textContent = new Date().getFullYear();
 
 function renderMenu() {
-  document.getElementById("menuGrid").innerHTML = PRODUCTS.map(p => `
+  menuGrid.innerHTML = PRODUCTS.map(product => `
     <article class="product-card">
-      <div class="product-art" style="--art-bg:${p.bg}"><span class="drink-emoji">${p.emoji}</span></div>
+      <div class="product-art" style="--art-bg:${product.bg}">
+        ${product.tag ? `<span class="popular-tag"><i class="fa-solid fa-star"></i> ${product.tag}</span>` : ""}
+        <span class="drink-emoji" role="img" aria-label="${product.name}">${product.emoji}</span>
+      </div>
       <div class="product-info">
-        <h3>${p.name}</h3>
-        <div class="product-bottom"><span class="price">${peso(p.price)}</span>
-          <button class="add-btn" data-add="${p.id}"><i class="fa-solid fa-plus"></i></button>
+        <h3>${product.name}</h3>
+        <p>${product.note}</p>
+        <div class="product-bottom"><span class="price">${peso(product.price)}</span>
+          <button class="add-btn" data-add="${product.id}" aria-label="Add ${product.name} to order" title="Add to order"><i class="fa-solid fa-plus"></i></button>
         </div>
       </div>
     </article>`).join("");
 }
 
-function getTotal() { return [...cart.values()].reduce((sum, item) => sum + item.p.price * item.qty, 0); }
-
+function getTotal() {
+  return [...cart.values()].reduce((sum, item) => sum + item.product.price * item.qty, 0);
+}
+function getCount() {
+  return [...cart.values()].reduce((sum, item) => sum + item.qty, 0);
+}
 function renderCart() {
-  const cartItems = document.getElementById("cartItems");
-  document.getElementById("cartBadge").textContent = cart.size;
-  document.getElementById("summaryCount").textContent = `${cart.size} items`;
-  document.getElementById("grandTotal").textContent = peso(getTotal());
+  const count = getCount();
+  cartBadge.textContent = count;
+  summaryCount.textContent = `${count} ${count === 1 ? "item" : "items"}`;
+  grandTotal.textContent = peso(getTotal());
 
   if (!cart.size) {
-    cartItems.innerHTML = `<div class="empty-cart">Your cup is empty</div>`;
+    cartItems.innerHTML = `<div class="empty-cart"><div class="empty-illustration"><i class="fa-solid fa-mug-saucer"></i><span>♡</span></div><h3>Your cup is empty</h3><p>Add a drink from the menu<br>to get your order started.</p></div>`;
   } else {
-    cartItems.innerHTML = [...cart.values()].map(({ p, qty }) => `
+    cartItems.innerHTML = [...cart.values()].map(({ product, qty }) => `
       <div class="cart-row">
-        <div class="cart-thumb" style="--art-bg:${p.bg}">${p.emoji}</div>
-        <div class="cart-details"><h4>${p.name}</h4><small>${peso(p.price)} each</small>
+        <div class="cart-thumb" style="--art-bg:${product.bg}">${product.emoji}</div>
+        <div class="cart-details"><h4>${product.name}</h4><small>${peso(product.price)} each</small>
           <div class="qty-control">
-            <button data-qty="-1" data-id="${p.id}">-</button><span>${qty}</span><button data-qty="1" data-id="${p.id}">+</button>
+            <button data-qty="-1" data-id="${product.id}" aria-label="Decrease ${product.name} quantity"><i class="fa-solid fa-minus"></i></button>
+            <span>${qty}</span>
+            <button data-qty="1" data-id="${product.id}" aria-label="Increase ${product.name} quantity"><i class="fa-solid fa-plus"></i></button>
           </div>
         </div>
-        <div class="cart-row-right"><strong>${peso(p.price * qty)}</strong><button class="remove-item" data-remove="${p.id}">x</button></div>
+        <div class="cart-row-right"><strong>${peso(product.price * qty)}</strong><button class="remove-item" data-remove="${product.id}" aria-label="Remove ${product.name}" title="Remove item"><i class="fa-solid fa-xmark"></i></button></div>
       </div>`).join("");
   }
-  updateChange();
+  updateChangePreview();
 }
-
-function updateChange() {
-  const cash = Number(document.getElementById("cashInput").value);
-  document.getElementById("changePreview").textContent = cash >= getTotal() ? peso(cash - getTotal()) : peso(0);
+function showAlert(message, type = "error") {
+  paymentAlert.textContent = "";
+  paymentAlert.className = `alert ${type}`;
+  const icon = document.createElement("i");
+  icon.className = type === "error" ? "fa-solid fa-circle-exclamation" : "fa-solid fa-circle-check";
+  icon.style.marginRight = "7px";
+  paymentAlert.append(icon, document.createTextNode(message));
+  paymentAlert.hidden = false;
 }
-
-document.getElementById("menuGrid").addEventListener("click", e => {
-  const btn = e.target.closest("[data-add]");
-  if (!btn) return;
-  const id = Number(btn.dataset.add);
-  const p = PRODUCTS.find(item => item.id === id);
-  const existing = cart.get(id);
-  cart.set(id, { p, qty: existing ? existing.qty + 1 : 1 });
-  renderCart();
-});
-
-document.getElementById("cartItems").addEventListener("click", e => {
-  const qtyBtn = e.target.closest("[data-qty]");
-  const rmBtn = e.target.closest("[data-remove]");
-  if (qtyBtn) {
-    const id = Number(qtyBtn.dataset.id);
-    const nextQty = cart.get(id).qty + Number(qtyBtn.dataset.qty);
-    nextQty <= 0 ? cart.delete(id) : cart.set(id, { ...cart.get(id), qty: nextQty });
-  } else if (rmBtn) {
-    cart.delete(Number(rmBtn.dataset.remove));
+function clearAlert() {
+  paymentAlert.hidden = true;
+  paymentAlert.textContent = "";
+  paymentAlert.className = "alert";
+}
+function updateChangePreview() {
+  const raw = cashInput.value;
+  const amount = Number(raw);
+  if (raw.trim() !== "" && Number.isFinite(amount) && amount >= getTotal()) {
+    changePreview.textContent = peso(amount - getTotal());
+  } else {
+    changePreview.textContent = peso(0);
   }
-  renderCart();
-});
-
-document.getElementById("cashInput").addEventListener("input", updateChange);
-
-document.getElementById("paymentForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const alertBox = document.getElementById("paymentAlert");
-  const cash = Number(document.getElementById("cashInput").value);
-  
-  if (!cart.size) { alertBox.textContent = "Cart is empty."; alertBox.className = "alert error"; alertBox.hidden = false; return; }
-  if (cash < getTotal()) { alertBox.textContent = "Insufficient cash."; alertBox.className = "alert error"; alertBox.hidden = false; return; }
-  
-  alertBox.hidden = true;
-  generateReceipt(cash);
-});
-
+}
+function validatePayment() {
+  if (!cart.size) return "Your cart is empty. Please add at least one drink before checkout.";
+  if (cashInput.value.trim() === "") return "Please enter the cash amount received.";
+  const cash = Number(cashInput.value);
+  if (!Number.isFinite(cash)) return "Please enter a valid numeric cash amount.";
+  if (cash < 0) return "Cash received cannot be a negative amount.";
+  if (cash < getTotal()) return `Insufficient payment. You still need ${peso(getTotal() - cash)}.`;
+  return "";
+}
+function createTransactionRef() {
+  return "TXN-" + Math.floor(100000 + Math.random() * 900000);
+}
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+}
 function generateReceipt(cash) {
   const total = getTotal();
-  document.getElementById("receiptContent").innerHTML = `
-    <div class="receipt-brand"><h2>CAMPUSSIP</h2><p>Transaction: TXN-${Math.floor(Math.random()*90000)}</p></div>
-    <table class="receipt-items"><thead><tr><th>ITEM</th><th>QTY</th><th>AMT</th></tr></thead>
-    <tbody>${[...cart.values()].map(({p, qty}) => `<tr><td>${p.name}</td><td>${qty}</td><td>${peso(p.price*qty)}</td></tr>`).join("")}</tbody></table>
-    <div class="receipt-totals"><div><span>TOTAL DUE</span><span>${peso(total)}</span></div>
-    <div><span>Cash paid</span><span>${peso(cash)}</span></div>
-    <div class="receipt-change"><span>CHANGE</span><span>${peso(cash - total)}</span></div></div>`;
-  document.getElementById("receiptModal").hidden = false;
+  const change = cash - total;
+  const now = new Date();
+  const date = new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "short", day: "2-digit" }).format(now);
+  const time = new Intl.DateTimeFormat("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(now);
+  const ref = createTransactionRef();
+  const rows = [...cart.values()].map(({ product, qty }) => `<tr><td>${escapeHTML(product.name)}<br><span style="color:#8b7d71">${escapeHTML(product.size)}</span></td><td>${qty}</td><td>${peso(product.price * qty)}</td></tr>`).join("");
+  receiptContent.innerHTML = `
+    <div class="receipt-brand"><div class="receipt-cup"><i class="fa-solid fa-mug-hot"></i></div><h2 id="receiptTitle">CAMPUSSIP</h2><p>MILK TEA & BEVERAGE SHOP<br>Campus refreshment, made with love<br>Thank you for supporting our campus shop!</p></div>
+    <div class="receipt-meta"><div><span>Transaction:</span><strong>${ref}</strong></div><div><span>Date:</span><span>${date}</span></div><div><span>Time:</span><span>${time}</span></div><div><span>Cashier:</span><span>Campus Cashier</span></div></div>
+    <table class="receipt-items"><thead><tr><th>ITEM</th><th>QTY</th><th>AMOUNT</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="receipt-totals"><div class="receipt-grand"><span>TOTAL DUE</span><span>${peso(total)}</span></div><div><span>Cash paid</span><span>${peso(cash)}</span></div><div class="receipt-change"><span>CHANGE</span><span>${peso(change)}</span></div></div>
+    <div class="receipt-thanks"><strong>THANK YOU! 🧋</strong>Have a sip-tastic day!<br>Keep this receipt for your records.</div>`;
+  receiptModal.hidden = false;
+  document.getElementById("closeReceiptBtn").focus();
 }
-
-document.getElementById("clearCartBtn").addEventListener("click", () => { cart.clear(); renderCart(); });
-document.getElementById("closeReceiptBtn").addEventListener("click", () => document.getElementById("receiptModal").hidden = true);
-document.getElementById("receiptNewBtn").addEventListener("click", () => { cart.clear(); document.getElementById("cashInput").value = ""; document.getElementById("receiptModal").hidden = true; renderCart(); });
+menuGrid.addEventListener("click", event => {
+  const button = event.target.closest("[data-add]");
+  if (!button) return;
+  const id = Number(button.dataset.add);
+  const product = PRODUCTS.find(item => item.id === id);
+  if (!product) return;
+  const existing = cart.get(id);
+  cart.set(id, { product, qty: existing ? existing.qty + 1 : 1 });
+  clearAlert();
+  renderCart();
+  button.innerHTML = '<i class="fa-solid fa-check"></i>';
+  window.setTimeout(() => { if (button.isConnected) button.innerHTML = '<i class="fa-solid fa-plus"></i>'; }, 500);
+});
+cartItems.addEventListener("click", event => {
+  const qtyButton = event.target.closest("[data-qty]");
+  const removeButton = event.target.closest("[data-remove]");
+  if (qtyButton) {
+    const id = Number(qtyButton.dataset.id);
+    const item = cart.get(id);
+    if (!item) return;
+    const nextQty = item.qty + Number(qtyButton.dataset.qty);
+    if (nextQty <= 0) cart.delete(id);
+    else cart.set(id, { ...item, qty: nextQty });
+  } else if (removeButton) {
+    cart.delete(Number(removeButton.dataset.remove));
+  } else return;
+  clearAlert();
+  renderCart();
+});
+cashInput.addEventListener("input", () => {
+  clearAlert();
+  updateChangePreview();
+});
+paymentForm.addEventListener("submit", event => {
+  event.preventDefault();
+  const error = validatePayment();
+  if (error) {
+    showAlert(error);
+    const panel = document.querySelector(".order-panel");
+    panel.classList.remove("shake");
+    void panel.offsetWidth;
+    panel.classList.add("shake");
+    if (!cart.size) document.getElementById("clearCartBtn").focus();
+    else cashInput.focus();
+    return;
+  }
+  generateReceipt(Number(cashInput.value));
+});
+function resetTransaction() {
+  cart.clear();
+  cashInput.value = "";
+  clearAlert();
+  changePreview.textContent = peso(0);
+  receiptModal.hidden = true;
+  renderCart();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.getElementById("clearCartBtn").addEventListener("click", () => {
+  cart.clear();
+  clearAlert();
+  renderCart();
+});
+document.getElementById("newTransactionBtn").addEventListener("click", resetTransaction);
+document.getElementById("receiptNewBtn").addEventListener("click", resetTransaction);
+document.getElementById("closeReceiptBtn").addEventListener("click", () => { receiptModal.hidden = true; });
 document.getElementById("printReceiptBtn").addEventListener("click", () => window.print());
+receiptModal.addEventListener("click", event => { if (event.target === receiptModal) receiptModal.hidden = true; });
+document.addEventListener("keydown", event => { if (event.key === "Escape" && !receiptModal.hidden) receiptModal.hidden = true; });
 
 renderMenu();
 renderCart();
