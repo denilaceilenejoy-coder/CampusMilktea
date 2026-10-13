@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#6b3f2a">
-  <title>Campus Milk Tea & Beverage Shop | POS</title>
+  <title>Campus Milk Tea &amp; Beverage Shop | POS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -17,14 +17,13 @@
     <header class="topbar">
       <a class="brand" href="#" aria-label="Campus Milk Tea home">
         <span class="brand-mark"><i class="fa-solid fa-mug-hot"></i></span>
-        <span><strong>campus<span class="brand-accent">sip.</span></strong><small>MILK TEA & BEVERAGE SHOP</small></span>
+        <span><strong>campus<span class="brand-accent">sip.</span></strong><small>MILK TEA &amp; BEVERAGE SHOP</small></span>
       </a>
       <div class="topbar-right">
         <span class="open-pill"><span></span> Shop is open</span>
         <div class="cashier"><span class="avatar"><i class="fa-solid fa-user"></i></span><span><strong>Campus Cashier</strong><small>Point of Sale</small></span></div>
       </div>
     </header>
-
     <main>
       <section class="welcome-row">
         <div>
@@ -34,7 +33,6 @@
         </div>
         <div class="date-chip"><i class="fa-regular fa-calendar"></i><span id="todayLabel">Today</span></div>
       </section>
-
       <div class="workspace">
         <section class="menu-section">
           <div class="section-heading">
@@ -44,26 +42,21 @@
           <div class="menu-grid" id="menuGrid" aria-label="Beverage menu"></div>
           <div class="menu-note"><i class="fa-solid fa-heart"></i> Made with love, served with a smile.</div>
         </section>
-
         <aside class="order-panel">
           <div class="order-heading">
             <div><p class="eyebrow">YOUR SELECTION</p><h2>Current order <span class="cart-badge" id="cartBadge">0</span></h2></div>
             <button class="icon-button" id="clearCartBtn" title="Clear cart" aria-label="Clear cart"><i class="fa-solid fa-trash-can"></i></button>
           </div>
-
           <div class="cart-items" id="cartItems">
             <div class="empty-cart">
               <div class="empty-illustration"><i class="fa-solid fa-mug-saucer"></i><span>♡</span></div>
-              <h3>Your cup is empty</h3>
-              <p>Add a drink from the menu<br>to get your order started.</p>
+              <h3>Your cup is empty</h3><p>Add a drink from the menu<br>to get your order started.</p>
             </div>
           </div>
-
           <div class="order-summary">
             <div class="summary-line"><span>Items in order</span><strong id="summaryCount">0 items</strong></div>
             <div class="summary-line total-line"><span>Grand total</span><strong id="grandTotal">₱0.00</strong></div>
           </div>
-
           <form id="paymentForm" novalidate>
             <label class="field-label" for="cashInput">Cash received <span>PHP (₱)</span></label>
             <div class="cash-field"><span class="currency-symbol">₱</span><input id="cashInput" name="cash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Enter amount received" autocomplete="off"><i class="fa-solid fa-money-bill-wave cash-icon"></i></div>
@@ -78,7 +71,6 @@
     </main>
     <footer><span>© <span id="year"></span> CampusSip POS</span><span>Made for campus moments <i class="fa-solid fa-heart"></i></span></footer>
   </div>
-
   <div class="modal-backdrop" id="receiptModal" hidden>
     <section class="receipt-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
       <div class="receipt-toolbar"><span><i class="fa-solid fa-circle-check"></i> Payment successful</span><button id="closeReceiptBtn" class="icon-button" aria-label="Close receipt"><i class="fa-solid fa-xmark"></i></button></div>
